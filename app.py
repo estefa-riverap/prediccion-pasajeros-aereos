@@ -7,9 +7,9 @@ import joblib
 # CARGAR ARCHIVOS
 # ==========================================
 
-modelo = joblib.load("modelo_gbr.pkl")
-scaler = joblib.load("scaler.pkl")
-columnas = joblib.load("columnas.pkl")
+modelo = joblib.load("modelo_gbr_FINAL.pkl")
+scaler = joblib.load("scaler_FINAL.pkl")
+columnas = joblib.load("columnas_FINAL.pkl")
 
 # ==========================================
 # TÍTULO
