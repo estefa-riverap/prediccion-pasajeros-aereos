@@ -2,26 +2,26 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ======================
+# =========================
 # Cargar modelo y scaler
-# ======================
+# =========================
 
 modelo = joblib.load("modelo_gbr.pkl")
 scaler = joblib.load("scaler.pkl")
 
-# ======================
+# =========================
 # Título
-# ======================
+# =========================
 
 st.title("Predicción de Pasajeros Aéreos")
 
 st.write(
-    "Ingrese los datos del vuelo para estimar la cantidad de pasajeros."
+    "Ingrese la información del vuelo para estimar la cantidad de pasajeros."
 )
 
-# ======================
+# =========================
 # Variables numéricas
-# ======================
+# =========================
 
 anio = st.number_input(
     "Año",
@@ -53,9 +53,9 @@ sillas = st.number_input(
     value=1500
 )
 
-# ======================
+# =========================
 # Aerolínea codificada
-# ======================
+# =========================
 
 nombre_encoded = st.number_input(
     "Código aerolínea (Nombre_encoded)",
@@ -63,9 +63,9 @@ nombre_encoded = st.number_input(
     value=1
 )
 
-# ======================
+# =========================
 # Ciudad origen
-# ======================
+# =========================
 
 ciudad_origen = st.selectbox(
     "Ciudad origen",
@@ -88,9 +88,51 @@ ciudad_origen = st.selectbox(
     ]
 )
 
-# ======================
+# =========================
+# Ciudad destino
+# =========================
+
+ciudad_destino = st.selectbox(
+    "Ciudad destino",
+    [
+        'ACAPULCO',
+        'ARUBA',
+        'ATLANTA',
+        'BALBOA',
+        'BOSTON',
+        'CANCUN',
+        'CHICAGO',
+        'CIUDAD DE MEXICO',
+        'CURACAO',
+        'DALAS',
+        'DALLAS',
+        'FLORIDA',
+        'FORT LAUDERDALE',
+        'GUADALAJARA',
+        'HOUSTON',
+        'LEON',
+        'LOS ANGELES',
+        'MERIDA',
+        'MEXICO',
+        'MIAMI',
+        'MONTERREY',
+        'NEW YORK',
+        'ORLANDO',
+        'PANAMA',
+        'PHILADELPHIA',
+        'PITTSBURGH',
+        'PUERTO PLATA',
+        'PUNTA CANA',
+        'SANTIAGO DE LOS CABALLEROS',
+        'SANTO DOMINGO',
+        'TAMPA',
+        'WASHINGTON'
+    ]
+)
+
+# =========================
 # País destino
-# ======================
+# =========================
 
 pais_destino = st.selectbox(
     "País destino",
@@ -103,9 +145,9 @@ pais_destino = st.selectbox(
     ]
 )
 
-# ======================
-# Predicción
-# ======================
+# =========================
+# Botón predicción
+# =========================
 
 if st.button("Predecir"):
 
@@ -116,6 +158,7 @@ if st.button("Predecir"):
         'Horas Bloque',
         'Sillas Ofrecidas',
         'Nombre_encoded',
+
         'Ciudad Origen_ARMENIA',
         'Ciudad Origen_BARRANCA DE UPIA',
         'Ciudad Origen_BARRANQUILLA',
@@ -131,6 +174,40 @@ if st.button("Predecir"):
         'Ciudad Origen_SAN JOSE DE CUCUTA',
         'Ciudad Origen_SANTA MARTA',
         'Ciudad Origen_SANTIAGO DE CALI',
+
+        'Ciudad Destino_ACAPULCO',
+        'Ciudad Destino_ARUBA',
+        'Ciudad Destino_ATLANTA',
+        'Ciudad Destino_BALBOA',
+        'Ciudad Destino_BOSTON',
+        'Ciudad Destino_CANCUN',
+        'Ciudad Destino_CHICAGO',
+        'Ciudad Destino_CIUDAD DE MEXICO',
+        'Ciudad Destino_CURACAO',
+        'Ciudad Destino_DALAS',
+        'Ciudad Destino_DALLAS',
+        'Ciudad Destino_FLORIDA',
+        'Ciudad Destino_FORT LAUDERDALE',
+        'Ciudad Destino_GUADALAJARA',
+        'Ciudad Destino_HOUSTON',
+        'Ciudad Destino_LEON',
+        'Ciudad Destino_LOS ANGELES',
+        'Ciudad Destino_MERIDA',
+        'Ciudad Destino_MEXICO',
+        'Ciudad Destino_MIAMI',
+        'Ciudad Destino_MONTERREY',
+        'Ciudad Destino_NEW YORK',
+        'Ciudad Destino_ORLANDO',
+        'Ciudad Destino_PANAMA',
+        'Ciudad Destino_PHILADELPHIA',
+        'Ciudad Destino_PITTSBURGH',
+        'Ciudad Destino_PUERTO PLATA',
+        'Ciudad Destino_PUNTA CANA',
+        'Ciudad Destino_SANTIAGO DE LOS CABALLEROS',
+        'Ciudad Destino_SANTO DOMINGO',
+        'Ciudad Destino_TAMPA',
+        'Ciudad Destino_WASHINGTON',
+
         'Pais Destino_ANTILLAS HOLANDESAS',
         'Pais Destino_ESTADOS UNIDOS',
         'Pais Destino_MEXICO',
@@ -159,13 +236,19 @@ if st.button("Predecir"):
     if col_origen in datos.columns:
         datos[col_origen] = 1
 
+    # One Hot Encoding ciudad destino
+    col_destino = f'Ciudad Destino_{ciudad_destino}'
+
+    if col_destino in datos.columns:
+        datos[col_destino] = 1
+
     # One Hot Encoding país destino
     col_pais = f'Pais Destino_{pais_destino}'
 
     if col_pais in datos.columns:
         datos[col_pais] = 1
 
-    # Escalar
+    # Escalar datos
     datos_scaled = scaler.transform(datos)
 
     # Predicción
