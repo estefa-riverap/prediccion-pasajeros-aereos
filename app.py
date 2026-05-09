@@ -4,11 +4,10 @@ import numpy as np
 import joblib
 
 # ==========================================
-# CARGAR ARCHIVOS
+# CARGAR MODELO Y COLUMNAS
 # ==========================================
 
 modelo = joblib.load("modelo_gbr_FINAL.pkl")
-scaler = joblib.load("scaler_FINAL.pkl")
 columnas = joblib.load("columnas_FINAL.pkl")
 
 # ==========================================
@@ -18,33 +17,38 @@ columnas = joblib.load("columnas_FINAL.pkl")
 st.title("Predicción de Pasajeros Aéreos")
 
 st.write(
-    "Predicción de pasajeros para rutas internacionales."
+    "Aplicación para estimar la cantidad de pasajeros en rutas internacionales."
 )
 
 # ==========================================
-# INPUTS
+# VARIABLES DE ENTRADA
 # ==========================================
 
-anio = st.number_input("Año", 2020, 2035, 2024)
+anio = st.number_input(
+    "Año",
+    min_value=2020,
+    max_value=2035,
+    value=2024
+)
 
 mes = st.selectbox(
     "Mes",
     [1,2,3,4,5,6,7,8,9,10,11,12]
 )
 
-vuelos = st.number_input(
+numero_vuelos = st.number_input(
     "Número de vuelos",
     min_value=1,
     value=120
 )
 
-horas = st.number_input(
+horas_bloque = st.number_input(
     "Horas bloque",
     min_value=1.0,
     value=2500.0
 )
 
-sillas = st.number_input(
+sillas_ofrecidas = st.number_input(
     "Sillas ofrecidas",
     min_value=1,
     value=25000
@@ -56,6 +60,10 @@ nombre_encoded = st.number_input(
     value=1
 )
 
+# ==========================================
+# CIUDAD ORIGEN
+# ==========================================
+
 ciudad_origen = st.selectbox(
     "Ciudad origen",
     [
@@ -66,6 +74,10 @@ ciudad_origen = st.selectbox(
         'BARRANQUILLA'
     ]
 )
+
+# ==========================================
+# CIUDAD DESTINO
+# ==========================================
 
 ciudad_destino = st.selectbox(
     "Ciudad destino",
@@ -79,6 +91,10 @@ ciudad_destino = st.selectbox(
     ]
 )
 
+# ==========================================
+# PAÍS DESTINO
+# ==========================================
+
 pais_destino = st.selectbox(
     "País destino",
     [
@@ -90,7 +106,7 @@ pais_destino = st.selectbox(
 )
 
 # ==========================================
-# PREDICCIÓN
+# BOTÓN PREDECIR
 # ==========================================
 
 if st.button("Predecir"):
@@ -102,41 +118,56 @@ if st.button("Predecir"):
         columns=columnas
     )
 
-    # Variables numéricas
+    # ==========================================
+    # VARIABLES NUMÉRICAS
+    # ==========================================
+
     datos['Año'] = anio
     datos['Mes'] = mes
-    datos['Número de Vuelos'] = vuelos
-    datos['Horas Bloque'] = horas
-    datos['Sillas Ofrecidas'] = sillas
+    datos['Número de Vuelos'] = numero_vuelos
+    datos['Horas Bloque'] = horas_bloque
+    datos['Sillas Ofrecidas'] = sillas_ofrecidas
     datos['Nombre_encoded'] = nombre_encoded
 
-    # One Hot Encoding
+    # ==========================================
+    # ONE HOT ENCODING
+    # ==========================================
+
     col_origen = f'Ciudad Origen_{ciudad_origen}'
+
     if col_origen in datos.columns:
         datos[col_origen] = 1
 
     col_destino = f'Ciudad Destino_{ciudad_destino}'
+
     if col_destino in datos.columns:
         datos[col_destino] = 1
 
     col_pais = f'Pais Destino_{pais_destino}'
+
     if col_pais in datos.columns:
         datos[col_pais] = 1
 
-    # Escalar
-    datos_scaled = scaler.transform(datos)
+    # ==========================================
+    # PREDICCIÓN
+    # ==========================================
 
-    # Predicción
-    pred_log = modelo.predict(datos_scaled)[0]
+    pred_log = modelo.predict(datos)[0]
 
-    # Volver escala original
+    # ==========================================
+    # VOLVER A ESCALA ORIGINAL
+    # ==========================================
+
     pred_real = np.expm1(pred_log)
 
-    # Resultado
+    # ==========================================
+    # RESULTADO
+    # ==========================================
+
     st.success(
         f"Cantidad estimada de pasajeros: {pred_real:,.0f}"
     )
 
-    # Debug
+    # Debug opcional
     st.write("Predicción log:", pred_log)
     st.write("Predicción real:", pred_real)
