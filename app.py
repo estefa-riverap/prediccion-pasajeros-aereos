@@ -3,32 +3,32 @@ import pandas as pd
 import numpy as np
 import joblib
 
-# =========================
-# Cargar modelo y scaler
-# =========================
+# ==========================================
+# CARGAR MODELO Y SCALER
+# ==========================================
 
 modelo = joblib.load("modelo_gbr.pkl")
 scaler = joblib.load("scaler.pkl")
 
-# =========================
-# Título
-# =========================
+# ==========================================
+# TÍTULO
+# ==========================================
 
 st.title("Predicción de Pasajeros Aéreos")
 
 st.write(
-    "Ingrese la información del vuelo para estimar la cantidad de pasajeros."
+    "Aplicación para estimar la cantidad de pasajeros en rutas aéreas internacionales."
 )
 
-# =========================
-# Variables numéricas
-# =========================
+# ==========================================
+# VARIABLES DE ENTRADA
+# ==========================================
 
 anio = st.number_input(
     "Año",
     min_value=2020,
     max_value=2035,
-    value=2025
+    value=2024
 )
 
 mes = st.selectbox(
@@ -36,37 +36,33 @@ mes = st.selectbox(
     [1,2,3,4,5,6,7,8,9,10,11,12]
 )
 
-vuelos = st.number_input(
+numero_vuelos = st.number_input(
     "Número de vuelos",
     min_value=1,
-    value=10
+    value=120
 )
 
-horas = st.number_input(
+horas_bloque = st.number_input(
     "Horas bloque",
-    min_value=0.0,
-    value=100.0
+    min_value=1.0,
+    value=2500.0
 )
 
-sillas = st.number_input(
+sillas_ofrecidas = st.number_input(
     "Sillas ofrecidas",
     min_value=1,
-    value=1500
+    value=25000
 )
 
-# =========================
-# Aerolínea codificada
-# =========================
-
 nombre_encoded = st.number_input(
-    "Código aerolínea (Nombre_encoded)",
+    "Código aerolínea",
     min_value=0,
     value=1
 )
 
-# =========================
-# Ciudad origen
-# =========================
+# ==========================================
+# CIUDAD ORIGEN
+# ==========================================
 
 ciudad_origen = st.selectbox(
     "Ciudad origen",
@@ -89,9 +85,9 @@ ciudad_origen = st.selectbox(
     ]
 )
 
-# =========================
-# Ciudad destino
-# =========================
+# ==========================================
+# CIUDAD DESTINO
+# ==========================================
 
 ciudad_destino = st.selectbox(
     "Ciudad destino",
@@ -131,9 +127,9 @@ ciudad_destino = st.selectbox(
     ]
 )
 
-# =========================
-# País destino
-# =========================
+# ==========================================
+# PAÍS DESTINO
+# ==========================================
 
 pais_destino = st.selectbox(
     "País destino",
@@ -146,9 +142,9 @@ pais_destino = st.selectbox(
     ]
 )
 
-# =========================
-# Botón predicción
-# =========================
+# ==========================================
+# BOTÓN PREDICCIÓN
+# ==========================================
 
 if st.button("Predecir"):
 
@@ -216,65 +212,72 @@ if st.button("Predecir"):
         'Pais Destino_REPUBLICA DOMINICANA'
     ]
 
-    # Crear dataframe vacío
+    # ==========================================
+    # CREAR DATAFRAME
+    # ==========================================
+
     datos = pd.DataFrame(
         0,
         index=[0],
         columns=columnas
     )
 
-    # =========================
-    # Variables numéricas
-    # =========================
+    # ==========================================
+    # VARIABLES NUMÉRICAS
+    # ==========================================
 
     datos['Año'] = anio
     datos['Mes'] = mes
-    datos['Número de Vuelos'] = vuelos
-    datos['Horas Bloque'] = horas
-    datos['Sillas Ofrecidas'] = sillas
+    datos['Número de Vuelos'] = numero_vuelos
+    datos['Horas Bloque'] = horas_bloque
+    datos['Sillas Ofrecidas'] = sillas_ofrecidas
     datos['Nombre_encoded'] = nombre_encoded
 
-    # =========================
-    # One Hot Encoding
-    # =========================
+    # ==========================================
+    # ONE HOT ENCODING
+    # ==========================================
 
-    # Ciudad origen
     col_origen = f'Ciudad Origen_{ciudad_origen}'
-
     if col_origen in datos.columns:
         datos[col_origen] = 1
 
-    # Ciudad destino
     col_destino = f'Ciudad Destino_{ciudad_destino}'
-
     if col_destino in datos.columns:
         datos[col_destino] = 1
 
-    # País destino
     col_pais = f'Pais Destino_{pais_destino}'
-
     if col_pais in datos.columns:
         datos[col_pais] = 1
 
-    # =========================
-    # Escalar datos
-    # =========================
+    # ==========================================
+    # ESCALAR
+    # ==========================================
 
     datos_scaled = scaler.transform(datos)
 
-    # =========================
-    # Predicción
-    # =========================
+    # ==========================================
+    # PREDICCIÓN
+    # ==========================================
 
-    pred_log = modelo.predict(datos_scaled)
+    pred_log = modelo.predict(datos_scaled)[0]
 
-    # Convertir desde log1p a escala real
+    # ==========================================
+    # VOLVER ESCALA ORIGINAL
+    # ==========================================
+
     pred_real = np.expm1(pred_log)
 
-    # =========================
-    # Resultado
-    # =========================
+    # ==========================================
+    # MOSTRAR RESULTADO
+    # ==========================================
 
     st.success(
-        f"Cantidad estimada de pasajeros: {pred_real[0]:,.0f}"
+        f"Cantidad estimada de pasajeros: {pred_real:,.0f}"
     )
+
+    # ==========================================
+    # DEBUG
+    # ==========================================
+
+    st.write("Valor predicho en log:", pred_log)
+    st.write("Valor real convertido:", pred_real)
