@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
 
 # =========================
@@ -222,7 +223,10 @@ if st.button("Predecir"):
         columns=columnas
     )
 
+    # =========================
     # Variables numéricas
+    # =========================
+
     datos['Año'] = anio
     datos['Mes'] = mes
     datos['Número de Vuelos'] = vuelos
@@ -230,31 +234,47 @@ if st.button("Predecir"):
     datos['Sillas Ofrecidas'] = sillas
     datos['Nombre_encoded'] = nombre_encoded
 
-    # One Hot Encoding ciudad origen
+    # =========================
+    # One Hot Encoding
+    # =========================
+
+    # Ciudad origen
     col_origen = f'Ciudad Origen_{ciudad_origen}'
 
     if col_origen in datos.columns:
         datos[col_origen] = 1
 
-    # One Hot Encoding ciudad destino
+    # Ciudad destino
     col_destino = f'Ciudad Destino_{ciudad_destino}'
 
     if col_destino in datos.columns:
         datos[col_destino] = 1
 
-    # One Hot Encoding país destino
+    # País destino
     col_pais = f'Pais Destino_{pais_destino}'
 
     if col_pais in datos.columns:
         datos[col_pais] = 1
 
+    # =========================
     # Escalar datos
+    # =========================
+
     datos_scaled = scaler.transform(datos)
 
+    # =========================
     # Predicción
-    pred = modelo.predict(datos_scaled)
+    # =========================
 
+    pred_log = modelo.predict(datos_scaled)
+
+    # Convertir desde log1p a escala real
+    pred_real = np.expm1(pred_log)
+
+    # =========================
     # Resultado
+    # =========================
+
     st.success(
-        f"Cantidad estimada de pasajeros: {pred[0]:.0f}"
+        f"Cantidad estimada de pasajeros: {pred_real[0]:,.0f}"
     )
