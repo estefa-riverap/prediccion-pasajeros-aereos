@@ -3,12 +3,11 @@ import pandas as pd
 import joblib
 
 # ======================
-# Cargar archivos
+# Cargar modelo y scaler
 # ======================
 
 modelo = joblib.load("modelo_gbr.pkl")
 scaler = joblib.load("scaler.pkl")
-encoder_nombre = joblib.load("encoder_nombre.pkl")
 
 # ======================
 # Título
@@ -17,14 +16,19 @@ encoder_nombre = joblib.load("encoder_nombre.pkl")
 st.title("Predicción de Pasajeros Aéreos")
 
 st.write(
-    "Ingrese la información del vuelo."
+    "Ingrese los datos del vuelo para estimar la cantidad de pasajeros."
 )
 
 # ======================
-# Inputs
+# Variables numéricas
 # ======================
 
-anio = st.number_input("Año", 2020, 2035, 2025)
+anio = st.number_input(
+    "Año",
+    min_value=2020,
+    max_value=2035,
+    value=2025
+)
 
 mes = st.selectbox(
     "Mes",
@@ -49,13 +53,20 @@ sillas = st.number_input(
     value=1500
 )
 
-# Aerolínea
-nombre = st.selectbox(
-    "Aerolínea",
-    list(encoder_nombre.classes_)
+# ======================
+# Aerolínea codificada
+# ======================
+
+nombre_encoded = st.number_input(
+    "Código aerolínea (Nombre_encoded)",
+    min_value=0,
+    value=1
 )
 
+# ======================
 # Ciudad origen
+# ======================
+
 ciudad_origen = st.selectbox(
     "Ciudad origen",
     [
@@ -77,7 +88,10 @@ ciudad_origen = st.selectbox(
     ]
 )
 
+# ======================
 # País destino
+# ======================
+
 pais_destino = st.selectbox(
     "País destino",
     [
@@ -96,8 +110,11 @@ pais_destino = st.selectbox(
 if st.button("Predecir"):
 
     columnas = [
-        'Año', 'Mes', 'Número de Vuelos',
-        'Horas Bloque', 'Sillas Ofrecidas',
+        'Año',
+        'Mes',
+        'Número de Vuelos',
+        'Horas Bloque',
+        'Sillas Ofrecidas',
         'Nombre_encoded',
         'Ciudad Origen_ARMENIA',
         'Ciudad Origen_BARRANCA DE UPIA',
@@ -122,7 +139,11 @@ if st.button("Predecir"):
     ]
 
     # Crear dataframe vacío
-    datos = pd.DataFrame(0, index=[0], columns=columnas)
+    datos = pd.DataFrame(
+        0,
+        index=[0],
+        columns=columnas
+    )
 
     # Variables numéricas
     datos['Año'] = anio
@@ -130,17 +151,15 @@ if st.button("Predecir"):
     datos['Número de Vuelos'] = vuelos
     datos['Horas Bloque'] = horas
     datos['Sillas Ofrecidas'] = sillas
+    datos['Nombre_encoded'] = nombre_encoded
 
-    # Label Encoding
-    datos['Nombre_encoded'] = encoder_nombre.transform([nombre])[0]
-
-    # One Hot Encoding origen
+    # One Hot Encoding ciudad origen
     col_origen = f'Ciudad Origen_{ciudad_origen}'
 
     if col_origen in datos.columns:
         datos[col_origen] = 1
 
-    # One Hot Encoding país
+    # One Hot Encoding país destino
     col_pais = f'Pais Destino_{pais_destino}'
 
     if col_pais in datos.columns:
@@ -154,5 +173,5 @@ if st.button("Predecir"):
 
     # Resultado
     st.success(
-        f"Pasajeros estimados: {pred[0]:.0f}"
+        f"Cantidad estimada de pasajeros: {pred[0]:.0f}"
     )
